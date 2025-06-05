@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import GraffitiCanvas from './components/GraffitiCanvas';
 
 const photoList = [
   'photos/ClovisOtownSign.jpg',
@@ -17,8 +18,8 @@ function App() {
   return (
     <div style={{ textAlign: 'center', padding: '2rem'}}>
       <h1>TagFresno</h1>
-      {photo && <img src={photo} alt="Fresno location" style={{maxWidth: '100%', borderRadius: '8px'}} />}
-      <p>Canvas coming next!</p>
+      <p>Draw your tag on a Fresno location:</p>
+      {photo && <GraffitiCanvas backgroundImage={photo}/>}
     </div>
   );
 }
