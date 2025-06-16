@@ -2,18 +2,40 @@ import { useEffect, useRef, useState } from 'react';
 
 function GraffitiCanvas({ backgroundImage }) {
   const [brushType, setBrushType] = useState('spray');
-  const canvasRef = useRef(null);
   const [color, setColor] = useState('#00ff00');
   const [brushSize, setBrushSize] = useState(20);
 
+  // Set initial canvas size based on window
+  const [canvasWidth, setCanvasWidth] = useState(Math.min(window.innerWidth * 0.9, 1000));
+  const [canvasHeight, setCanvasHeight] = useState((Math.min(window.innerWidth * 0.9, 1000) * 3) / 5);
+
+  const canvasRef = useRef(null);
+
+  // Resize canvas when window changes
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const width = Math.min(window.innerWidth * 0.9, 1000); // 90% of window, max 1000px
+      const height = (width * 3) / 5;
+      setCanvasWidth(width);
+      setCanvasHeight(height);
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  // Fabric Canvas
   useEffect(() => {
     const fabric = window.fabric;
-
-    const canvas = new fabric.Canvas(canvasRef.current, {
+    const canvasEl = canvasRef.current;
+    const canvas = new fabric.Canvas(canvasEl, {
       isDrawingMode: true,
     });
 
-    // Default brush setup
+    canvasRef.current.fabricCanvas = canvas;
+
+    // Setup default brush
     const sprayBrush = new fabric.SprayBrush(canvas);
     sprayBrush.color = color;
     sprayBrush.width = brushSize;
@@ -21,27 +43,44 @@ function GraffitiCanvas({ backgroundImage }) {
     sprayBrush.dotWidth = 6;
     sprayBrush.dotWidthVariance = 3;
     sprayBrush.distance = 2;
-
     canvas.freeDrawingBrush = sprayBrush;
-    canvasRef.current.fabricCanvas = canvas;
 
-    // Set background image
+    // Set Canvas Image
     if (backgroundImage) {
       fabric.Image.fromURL(backgroundImage, (img) => {
-        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-          scaleX: canvas.width / img.width,
-          scaleY: canvas.height / img.height,
-        });
+        img.scaleToWidth(canvasWidth);
+        img.scaleToHeight(canvasHeight);
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
       });
     }
 
     return () => canvas.dispose();
   }, [backgroundImage]);
 
-  // Function to switch brush type
-  function applyBrush(canvas, fabricInstance) {
-    let brush;
+  // Resize Window
+  useEffect(() => {
+    const canvas = canvasRef.current?.fabricCanvas;
+    if (!canvas) return;
 
+    canvas.setWidth(canvasWidth);
+    canvas.setHeight(canvasHeight);
+
+    // Resize canvas image
+    const bgImage = canvas.backgroundImage;
+    if (bgImage) {
+      bgImage.scaleToWidth(canvasWidth);
+      bgImage.scaleToHeight(canvasHeight);
+      canvas.renderAll();
+    }
+  }, [canvasWidth, canvasHeight]);
+
+  // Update brush
+  useEffect(() => {
+    const canvas = canvasRef.current.fabricCanvas;
+    const fabricInstance = window.fabric;
+    if (!canvas || !fabricInstance) return;
+
+    let brush;
     if (brushType === 'spray') {
       brush = new fabricInstance.SprayBrush(canvas);
       brush.density = 30;
@@ -50,32 +89,31 @@ function GraffitiCanvas({ backgroundImage }) {
       brush.distance = 1;
     } else if (brushType === 'pencil') {
       brush = new fabricInstance.PencilBrush(canvas);
-    } else if (brushType === 'circle') {
+    } else {
       brush = new fabricInstance.CircleBrush(canvas);
     }
 
     brush.color = color;
     brush.width = brushSize;
     canvas.freeDrawingBrush = brush;
-  }
-
-  useEffect(() => {
-    const canvas = canvasRef.current.fabricCanvas;
-    const fabricInstance = window.fabric;
-    if (canvas && fabricInstance) {
-      applyBrush(canvas, fabricInstance);
-    }
   }, [brushType, color, brushSize]);
 
   return (
-    <div>
+    <div style={{ width: '100%', padding: '1rem' }}>
       <canvas
         ref={canvasRef}
-        width={800}
-        height={600}
-        style={{ border: '2px solid #444', marginTop: '1rem' }}
+        width={canvasWidth}
+        height={canvasHeight}
+        style={{
+          width: '100%',
+          height: 'auto',
+          border: '2px solid #444',
+          display: 'block',
+          marginTop: '1rem',
+        }}
       />
-      <div style={{ marginTop: '1rem' }}>
+
+      <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
         <label>
           🎨 Color:
           <input
@@ -85,7 +123,7 @@ function GraffitiCanvas({ backgroundImage }) {
             style={{ marginLeft: '0.5rem' }}
           />
         </label>
-        <label style={{ marginLeft: '1rem' }}>
+        <label>
           Size:
           <input
             type="range"
