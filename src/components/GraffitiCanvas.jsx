@@ -5,16 +5,25 @@ function GraffitiCanvas({ backgroundImage }) {
   const [color, setColor] = useState('#00ff00');
   const [brushSize, setBrushSize] = useState(20);
 
-  // Set initial canvas size based on window
+  const canvasRef = useRef(null);
+  const inkBrushRef = useRef(null); // Persist InkBrush constructor
+
   const [canvasWidth, setCanvasWidth] = useState(Math.min(window.innerWidth * 0.9, 1000));
   const [canvasHeight, setCanvasHeight] = useState((Math.min(window.innerWidth * 0.9, 1000) * 3) / 5);
 
-  const canvasRef = useRef(null);
+  useEffect(() => {
+    const fabricInstance = window.fabric;
 
-  // Resize canvas when window changes
+    // Attach InkBrush if available globally but not yet on fabric
+    if (window.InkBrush && !fabricInstance.InkBrush) {
+      fabricInstance.InkBrush = window.InkBrush;
+      console.log('Attached InkBrush to fabric');
+    }
+  }, []);
+
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = Math.min(window.innerWidth * 0.9, 1000); // 90% of window, max 1000px
+      const width = Math.min(window.innerWidth * 0.9, 1000);
       const height = (width * 3) / 5;
       setCanvasWidth(width);
       setCanvasHeight(height);
@@ -25,7 +34,6 @@ function GraffitiCanvas({ backgroundImage }) {
     return () => window.removeEventListener('resize', updateCanvasSize);
   }, []);
 
-  // Fabric Canvas
   useEffect(() => {
     const fabric = window.fabric;
     const canvasEl = canvasRef.current;
@@ -35,7 +43,6 @@ function GraffitiCanvas({ backgroundImage }) {
 
     canvasRef.current.fabricCanvas = canvas;
 
-    // Setup default brush
     const sprayBrush = new fabric.SprayBrush(canvas);
     sprayBrush.color = color;
     sprayBrush.width = brushSize;
@@ -45,7 +52,6 @@ function GraffitiCanvas({ backgroundImage }) {
     sprayBrush.distance = 2;
     canvas.freeDrawingBrush = sprayBrush;
 
-    // Set Canvas Image
     if (backgroundImage) {
       fabric.Image.fromURL(backgroundImage, (img) => {
         img.scaleToWidth(canvasWidth);
@@ -57,7 +63,6 @@ function GraffitiCanvas({ backgroundImage }) {
     return () => canvas.dispose();
   }, [backgroundImage]);
 
-  // Resize Window
   useEffect(() => {
     const canvas = canvasRef.current?.fabricCanvas;
     if (!canvas) return;
@@ -65,22 +70,40 @@ function GraffitiCanvas({ backgroundImage }) {
     canvas.setWidth(canvasWidth);
     canvas.setHeight(canvasHeight);
 
-    // Resize canvas image
-    const bgImage = canvas.backgroundImage;
-    if (bgImage) {
-      bgImage.scaleToWidth(canvasWidth);
-      bgImage.scaleToHeight(canvasHeight);
+    if (canvas.backgroundImage) {
+      canvas.backgroundImage.scaleToWidth(canvasWidth);
+      canvas.backgroundImage.scaleToHeight(canvasHeight);
       canvas.renderAll();
     }
   }, [canvasWidth, canvasHeight]);
 
-  // Update brush
   useEffect(() => {
-    const canvas = canvasRef.current.fabricCanvas;
+    const canvas = canvasRef.current?.fabricCanvas;
     const fabricInstance = window.fabric;
     if (!canvas || !fabricInstance) return;
 
+    const prevBrush = canvas.freeDrawingBrush;
+
+    // Flatten InkBrush content before switching brushes
+    if (prevBrush instanceof fabricInstance.InkBrush && brushType !== 'ink') {
+      const ctx = canvas.contextTop;
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      tempCanvas.getContext('2d').putImageData(imgData, 0, 0);
+
+      fabricInstance.Image.fromURL(tempCanvas.toDataURL(), (img) => {
+        img.selectable = false;
+        canvas.add(img);
+        canvas.renderAll();
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear overlay
+      });
+    }
+
     let brush;
+
     if (brushType === 'spray') {
       brush = new fabricInstance.SprayBrush(canvas);
       brush.density = 30;
@@ -89,13 +112,27 @@ function GraffitiCanvas({ backgroundImage }) {
       brush.distance = 1;
     } else if (brushType === 'pencil') {
       brush = new fabricInstance.PencilBrush(canvas);
-    } else {
+    } else if (brushType === 'circle') {
       brush = new fabricInstance.CircleBrush(canvas);
+    } else if (brushType === 'ink') {
+      if (fabricInstance.InkBrush) {
+        inkBrushRef.current = fabricInstance.InkBrush;
+        brush = new inkBrushRef.current(canvas);
+      } else {
+        console.warn('InkBrush not available. Falling back to CircleBrush.');
+        brush = new fabricInstance.CircleBrush(canvas);
+      }
     }
 
-    brush.color = color;
-    brush.width = brushSize;
+    if ('color' in brush) brush.color = color;
+    if ('strokeWidth' in brush) {
+      brush.strokeWidth = brushSize;
+    } else if ('width' in brush) {
+      brush.width = brushSize;
+    }
+
     canvas.freeDrawingBrush = brush;
+    console.log(`Brush set to: ${brushType}`, brush);
   }, [brushType, color, brushSize]);
 
   return (
@@ -142,6 +179,7 @@ function GraffitiCanvas({ backgroundImage }) {
         <button onClick={() => setBrushType('spray')} title="Spray Can">🖌️ Spray</button>
         <button onClick={() => setBrushType('pencil')} title="Pencil">✏️ Pencil</button>
         <button onClick={() => setBrushType('circle')} title="Circle">⚪ Circle</button>
+        <button onClick={() => setBrushType('ink')} title="Ink">🖋️ Ink</button>
       </div>
     </div>
   );
