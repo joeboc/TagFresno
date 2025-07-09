@@ -54,9 +54,12 @@ function GraffitiCanvas({ backgroundImage }) {
 
     if (backgroundImage) {
       fabric.Image.fromURL(backgroundImage, (img) => {
-        img.scaleToWidth(canvasWidth);
-        img.scaleToHeight(canvasHeight);
-        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+          scaleX: canvas.getWidth() / img.width,
+          scaleY: canvas.getHeight() / img.height,
+          originX: 'left',
+          originY: 'top',
+        });
       });
     }
 
@@ -136,7 +139,15 @@ function GraffitiCanvas({ backgroundImage }) {
   }, [brushType, color, brushSize]);
 
   return (
-    <div style={{ width: '100%', padding: '1rem' }}>
+    <div style={{ 
+      width: '100%', 
+      padding: '1rem', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      flexDirection: 'column', 
+      alignItems: 'center' 
+    }}>
+    
       <canvas
         ref={canvasRef}
         width={canvasWidth}

@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import GraffitiCanvas from './components/GraffitiCanvas';
 
 const photoList = [
-  'photos/ClovisOtownSign.jpg',
-  'photos/FresnoCopyStore.jpg',
-  'photos/FresnoWaterTower.jpg',
+  'photos/OtcLibrary.jpg',
+  'photos/OtcTower.jpg',
+  'photos/RaMural.jpg',
+  'photos/TowerMural.jpg',
 ];
 
 function App() {
@@ -16,7 +17,14 @@ function App() {
   }, []);
 
   return (
-    <div style={{ textAlign: 'center', padding: '2rem'}}>
+    <div style={{ 
+      width: '100%',
+      maxWidth: '1200px', // Optional: limit width on large screens
+      margin: '0 auto', 
+      flexDirection: 'column',
+      padding: '2rem', 
+      textAlign: 'center',
+    }}>
       <h1>TagFresno</h1>
       <p>Draw your tag on a Fresno location:</p>
       {photo && <GraffitiCanvas backgroundImage={photo}/>}
