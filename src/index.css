@@ -1,6 +1,6 @@
 .canvas-container {
   display: flex;
-  width: 100%;
+  width: 80%;
 }
 
 :root {
@@ -11,8 +11,8 @@
   display: flex;
   justify-content: center;
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: rgba(32, 30, 37, 0.87);
+  background-color: #9f0a0a;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -41,6 +41,7 @@ body {
   place-items: center;
   min-height: 100vh;
   width: 100%;
+  background-color: #0a0a0a;
 }
 
 

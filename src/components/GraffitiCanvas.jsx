@@ -8,8 +8,9 @@ function GraffitiCanvas({ backgroundImage }) {
   const canvasRef = useRef(null);
   const inkBrushRef = useRef(null); // Persist InkBrush constructor
 
-  const [canvasWidth, setCanvasWidth] = useState(Math.min(window.innerWidth * 0.9, 1000));
-  const [canvasHeight, setCanvasHeight] = useState((Math.min(window.innerWidth * 0.9, 1000) * 3) / 5);
+  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth);
+const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
+
 
   useEffect(() => {
     const fabricInstance = window.fabric;
@@ -23,7 +24,7 @@ function GraffitiCanvas({ backgroundImage }) {
 
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = Math.min(window.innerWidth * 0.9, 1000);
+      const width = window.innerWidth;
       const height = (width * 3) / 5;
       setCanvasWidth(width);
       setCanvasHeight(height);
@@ -139,61 +140,64 @@ function GraffitiCanvas({ backgroundImage }) {
   }, [brushType, color, brushSize]);
 
   return (
-    <div style={{ 
-      width: '100%', 
-      padding: '1rem', 
-      display: 'flex', 
-      justifyContent: 'center', 
-      flexDirection: 'column', 
-      alignItems: 'center' 
-    }}>
-    
-      <canvas
-        ref={canvasRef}
-        width={canvasWidth}
-        height={canvasHeight}
+    <div style={{ width: '100%' }}>
+      <div
         style={{
-          width: '100%',
-          height: 'auto',
-          border: '2px solid #444',
-          display: 'block',
-          marginTop: '1rem',
+          width: '80%',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
-      />
-
-      <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
-        <label>
-          🎨 Color:
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            style={{ marginLeft: '0.5rem' }}
-          />
-        </label>
-        <label>
-          Size:
-          <input
-            type="range"
-            min="5"
-            max="100"
-            value={brushSize}
-            onChange={(e) => setBrushSize(parseInt(e.target.value))}
-            style={{ marginLeft: '0.5rem' }}
-          />
-          &nbsp;{brushSize}px
-        </label>
-      </div>
-
-      <div style={{ marginTop: '1rem' }}>
-        <label>Select Brush:&nbsp;</label>
-        <button onClick={() => setBrushType('spray')} title="Spray Can">🖌️ Spray</button>
-        <button onClick={() => setBrushType('pencil')} title="Pencil">✏️ Pencil</button>
-        <button onClick={() => setBrushType('circle')} title="Circle">⚪ Circle</button>
-        <button onClick={() => setBrushType('ink')} title="Ink">🖋️ Ink</button>
+      >
+        <canvas
+          ref={canvasRef}
+          width={canvasWidth}
+          height={canvasHeight}
+          style={{
+            width: '100%',
+            height: 'auto',
+            border: '2px solid #444',
+            display: 'block',
+            marginTop: '1rem',
+          }}
+        />
+  
+        <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
+          <label>
+            🎨 Color:
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              style={{ marginLeft: '0.5rem' }}
+            />
+          </label>
+          <label>
+            Size:
+            <input
+              type="range"
+              min="5"
+              max="100"
+              value={brushSize}
+              onChange={(e) => setBrushSize(parseInt(e.target.value))}
+              style={{ marginLeft: '0.5rem' }}
+            />
+            &nbsp;{brushSize}px
+          </label>
+        </div>
+  
+        <div style={{ marginTop: '1rem' }}>
+          <label>Select Brush:&nbsp;</label>
+          <button onClick={() => setBrushType('spray')} title="Spray Can">🖌️ Spray</button>
+          <button onClick={() => setBrushType('pencil')} title="Pencil">✏️ Pencil</button>
+          <button onClick={() => setBrushType('circle')} title="Circle">⚪ Circle</button>
+          <button onClick={() => setBrushType('ink')} title="Ink">🖋️ Ink</button>
+        </div>
       </div>
     </div>
   );
+  
 }
 
 export default GraffitiCanvas;

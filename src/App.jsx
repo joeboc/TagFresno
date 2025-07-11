@@ -22,7 +22,6 @@ function App() {
       maxWidth: '1200px', // Optional: limit width on large screens
       margin: '0 auto', 
       flexDirection: 'column',
-      padding: '2rem', 
       textAlign: 'center',
     }}>
       <h1>TagFresno</h1>
