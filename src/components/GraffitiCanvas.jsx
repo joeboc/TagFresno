@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 function GraffitiCanvas({ backgroundImage }) {
-  const [brushType, setBrushType] = useState('spray');
+  const [brushType, setBrushType] = useState('ink');
   const [color, setColor] = useState('#00ff00');
   const [brushSize, setBrushSize] = useState(20);
 
@@ -24,7 +24,7 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
 
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = window.innerWidth;
+      const width = (window.innerWidth * 0.9);
       const height = (width * 3) / 5;
       setCanvasWidth(width);
       setCanvasHeight(height);
@@ -44,42 +44,39 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
 
     canvasRef.current.fabricCanvas = canvas;
 
-    const sprayBrush = new fabric.SprayBrush(canvas);
-    sprayBrush.color = color;
-    sprayBrush.width = brushSize;
-    sprayBrush.density = 30;
-    sprayBrush.dotWidth = 6;
-    sprayBrush.dotWidthVariance = 3;
-    sprayBrush.distance = 2;
-    canvas.freeDrawingBrush = sprayBrush;
-
-    if (backgroundImage) {
-      fabric.Image.fromURL(backgroundImage, (img) => {
-        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-          scaleX: canvas.getWidth() / img.width,
-          scaleY: canvas.getHeight() / img.height,
-          originX: 'left',
-          originY: 'top',
-        });
-      });
-    }
 
     return () => canvas.dispose();
-  }, [backgroundImage]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current?.fabricCanvas;
-    if (!canvas) return;
+    const fabric = window.fabric;
+    if (!canvas || !fabric) return;
 
     canvas.setWidth(canvasWidth);
     canvas.setHeight(canvasHeight);
-
-    if (canvas.backgroundImage) {
-      canvas.backgroundImage.scaleToWidth(canvasWidth);
-      canvas.backgroundImage.scaleToHeight(canvasHeight);
+    if (backgroundImage) {
+      fabric.Image.fromURL(backgroundImage, (img) => {
+        const scaleFactor = Math.max(
+          canvasWidth / img.width,
+          canvasHeight / img.height
+        );
+      
+        img.scale(scaleFactor);
+      
+        img.set({
+          left: (canvasWidth - img.getScaledWidth()) / 2,
+          top: (canvasHeight - img.getScaledHeight()) / 2,
+          originX: 'left',
+          originY: 'top',
+        });
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+      });
+    } else {
       canvas.renderAll();
     }
-  }, [canvasWidth, canvasHeight]);
+    
+  }, [canvasWidth, canvasHeight, backgroundImage]);
 
   useEffect(() => {
     const canvas = canvasRef.current?.fabricCanvas;
@@ -108,16 +105,8 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
 
     let brush;
 
-    if (brushType === 'spray') {
-      brush = new fabricInstance.SprayBrush(canvas);
-      brush.density = 30;
-      brush.dotWidth = 10;
-      brush.dotWidthVariance = 10;
-      brush.distance = 1;
-    } else if (brushType === 'pencil') {
+    if (brushType === 'pencil') {
       brush = new fabricInstance.PencilBrush(canvas);
-    } else if (brushType === 'circle') {
-      brush = new fabricInstance.CircleBrush(canvas);
     } else if (brushType === 'ink') {
       if (fabricInstance.InkBrush) {
         inkBrushRef.current = fabricInstance.InkBrush;
@@ -189,9 +178,7 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
   
         <div style={{ marginTop: '1rem' }}>
           <label>Select Brush:&nbsp;</label>
-          <button onClick={() => setBrushType('spray')} title="Spray Can">🖌️ Spray</button>
           <button onClick={() => setBrushType('pencil')} title="Pencil">✏️ Pencil</button>
-          <button onClick={() => setBrushType('circle')} title="Circle">⚪ Circle</button>
           <button onClick={() => setBrushType('ink')} title="Ink">🖋️ Ink</button>
         </div>
       </div>
