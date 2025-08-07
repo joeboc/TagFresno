@@ -21,6 +21,21 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+.controls {
+  margin-top: 1rem;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+.controls label {
+  font-weight: bold;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);

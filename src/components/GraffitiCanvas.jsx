@@ -25,7 +25,7 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
   useEffect(() => {
     const updateCanvasSize = () => {
       const width = (window.innerWidth * 0.9);
-      const height = (width * 3) / 5;
+      const height = (width * 3) / 7;
       setCanvasWidth(width);
       setCanvasHeight(height);
     };
@@ -57,21 +57,22 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
     canvas.setHeight(canvasHeight);
     if (backgroundImage) {
       fabric.Image.fromURL(backgroundImage, (img) => {
-        const scaleFactor = Math.max(
-          canvasWidth / img.width,
-          canvasHeight / img.height
+        const scale = Math.min(
+          canvas.getWidth() / img.width,
+          canvas.getHeight() / img.height
         );
       
-        img.scale(scaleFactor);
-      
         img.set({
-          left: (canvasWidth - img.getScaledWidth()) / 2,
-          top: (canvasHeight - img.getScaledHeight()) / 2,
-          originX: 'left',
-          originY: 'top',
+          scaleX: scale,
+          scaleY: scale,
+          left: (canvas.getWidth() - img.width * scale) / 2,
+          top: (canvas.getHeight() - img.height * scale) / 2,
+          originY: 'top'
         });
+      
         canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
       });
+      
     } else {
       canvas.renderAll();
     }
@@ -178,8 +179,10 @@ const [canvasHeight, setCanvasHeight] = useState((window.innerWidth * 3) / 100);
   
         <div style={{ marginTop: '1rem' }}>
           <label>Select Brush:&nbsp;</label>
+          <div class="controls">
           <button onClick={() => setBrushType('pencil')} title="Pencil">✏️ Pencil</button>
           <button onClick={() => setBrushType('ink')} title="Ink">🖋️ Ink</button>
+          </div>
         </div>
       </div>
     </div>

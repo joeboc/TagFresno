@@ -3,6 +3,21 @@
   width: 80%;
 }
 
+/* index.css or App.css */
+html, body, #root {
+  min-height: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+/*background-image: url('/photos/Assets/ConcreteWall.png'); /* or whatever your filename is */
+  background-size: cover;
+  background-color: #333;
+  background-position: center;
+  background-repeat: repeat-y;
+}
+
+
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -46,7 +61,7 @@ body {
   place-items: center;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--bg-color);
+  background-color: white;;
   color: var(--text-color);
 }
 
@@ -60,6 +75,7 @@ input[type="range"] {
 label {
   color: var(--text-color);
 }
+
 
 h1 {
   color: var(--accent-pink);
